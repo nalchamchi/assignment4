@@ -1,11 +1,3 @@
-/*
- * hash_table.c
- *
- * Implements a simple hash table with chaining via linked lists.
- * #1) Implements hash_table_collisions() to count collisions correctly.
- * #2) Provides hash_function2() that on 11 keys and 8 slots yields 3 collisions.
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -14,42 +6,33 @@
 #include "node.h"
 #include "hash_table.h"
 
-/*
- * Definition of the hash_table structure.
- */
+
 struct hash_table {
     struct node** array;
     int size;
     int total;
 };
 
-/*
- * hash_function1: basic hash on the first character.
- */
+
 int hash_function1(struct hash_table* hash_table, char* key) {
     return ((int)key[0]) % hash_table->size;
 }
 
-/*
- * hash_function2: improved hash for 11 elements in 8 slots → 3 collisions.
- * Uses (first + last + length) & (size - 1) to guarantee 0..size-1.
- */
+
 int hash_function2(struct hash_table* hash_table, char* key) {
     int len   = (int)strlen(key);
     int first = (unsigned char)key[0];
     int last  = (unsigned char)key[len - 1];
 
-    /* combine and mask to 0..size-1 (size==8 → mask &7) */
+
     unsigned long h = (unsigned long)first + (unsigned long)last + (unsigned long)len;
     int idx = (int)(h & (hash_table->size - 1));
-    /* safety: idx < 0 cannot happen here, but just in case */
+
     if (idx < 0) idx += hash_table->size;
     return idx;
 }
 
-/*
- * Create a new, empty hash_table of the given size.
- */
+
 struct hash_table* hash_table_create(int array_size) {
     struct hash_table* ht = malloc(sizeof(struct hash_table));
     assert(ht);
@@ -63,9 +46,7 @@ struct hash_table* hash_table_create(int array_size) {
     return ht;
 }
 
-/*
- * Free all memory associated with the hash_table.
- */
+
 void hash_table_free(struct hash_table* hash_table) {
     assert(hash_table);
     for (int i = 0; i < hash_table->size; i++) {
@@ -99,9 +80,7 @@ void hash_table_reset(struct hash_table* hash_table) {
     }
 }
 
-/*
- * Add a key-value pair to the hash table using the given hash function.
- */
+
 void hash_table_add(struct hash_table* hash_table,
                     int (*hf)(struct hash_table*, char*),
                     char* key, int value) {
@@ -120,9 +99,7 @@ void hash_table_add(struct hash_table* hash_table,
     hash_table->total++;
 }
 
-/*
- * Remove a key from the hash table; return 1 if removed, 0 if not found.
- */
+
 int hash_table_remove(struct hash_table* hash_table,
                       int (*hf)(struct hash_table*, char*),
                       char* key) {
@@ -147,10 +124,7 @@ int hash_table_remove(struct hash_table* hash_table,
     return 0;
 }
 
-/*
- * #1: Count total collisions.
- * For each bucket with count>1, add (count-1) to num_col.
- */
+
 int hash_table_collisions(struct hash_table* hash_table) {
     int num_col = 0;
     for (int i = 0; i < hash_table->size; i++) {
@@ -167,9 +141,7 @@ int hash_table_collisions(struct hash_table* hash_table) {
     return num_col;
 }
 
-/*
- * Display the hash table contents (for debugging).
- */
+
 void display(struct hash_table* hash_table) {
     printf("Hash table, size=%d, total=%d\n",
            hash_table->size, hash_table->total);
