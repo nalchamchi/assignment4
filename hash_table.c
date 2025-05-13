@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <string.h>
 
+
 #include "node.h"
 #include "hash_table.h"
 
@@ -20,18 +21,26 @@ int hash_function1(struct hash_table* hash_table, char* key) {
 
 
 
+
+
 int hash_function2(struct hash_table* hash_table, char* key)
 {
-    int len   = strlen(key);          
-    int first = (unsigned char)key[0];
+
+    int len   = strlen(key);                 
+    int first = (unsigned char)key[0];       
     int last  = (unsigned char)key[len - 1]; 
 
-    int index = (first + last + len) % hash_table->size;
 
-    if (index < 0) index += hash_table->size;
+    int idx = (first + last + len) % hash_table->size;
 
-    return index;
+
+    if (idx < 0) idx += hash_table->size;
+
+    return idx;     
 }
+
+
+
 
 
 
