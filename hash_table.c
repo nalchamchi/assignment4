@@ -20,17 +20,25 @@ int hash_function1(struct hash_table* hash_table, char* key) {
 
 
 int hash_function2(struct hash_table* hash_table, char* key) {
-  int len = strlen(key);
-  int first = key[0];
-  int last = key[len - 1];
-  int mid = key[len / 2];
+    int len   = strlen(key);
+    int first = key[0];          
+    int last  = key[len - 1];     
 
+    int hash  = first + last + len;
 
-  int hash = (first * 7 + last * 11 + mid * 13 + len * 17);
+    
+    int index = hash % hash_table->size;
+    if (index < 0) index += hash_table->size;
 
- 
-  return hash % hash_table->size;
+    return index;
 }
+
+
+
+
+
+
+
 
 
 struct hash_table* hash_table_create(int array_size) {
