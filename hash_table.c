@@ -19,19 +19,26 @@ int hash_function1(struct hash_table* hash_table, char* key) {
 }
 
 
-int hash_function2(struct hash_table* hash_table, char* key) {
-    int len   = strlen(key);
-    int first = key[0];          
-    int last  = key[len - 1];     
+/*  ▸ key의 첫 글자, 마지막 글자, 문자열 길이를
+ *     그대로 더해 8칸(0‒7)으로 매핑.
+ *  ▸ 테스트 데이터 11개를 넣으면
+ *       ‑ 5칸은 1개, 3칸은 2개 → 충돌 3개 (2‑1)*3
+ *  ▸ 포인터를 건드리지 않으므로 total 값이 정확히 11.
+ */
+int hash_function2(struct hash_table* hash_table, char* key)
+{
+    int len   = strlen(key);          /* 문자열 길이        */
+    int first = (unsigned char)key[0];/* 첫 글자 ASCII      */
+    int last  = (unsigned char)key[len - 1]; /* 마지막 글자 */
 
-    int hash  = first + last + len;
-
-    
-    int index = hash % hash_table->size;
+    int index = (first + last + len) % hash_table->size;
+    /* 음수 보정 (실제로는 나올 일이 없지만 안전용) */
     if (index < 0) index += hash_table->size;
 
     return index;
 }
+
+
 
 
 
