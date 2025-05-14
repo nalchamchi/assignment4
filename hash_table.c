@@ -13,6 +13,15 @@ struct hash_table {
   int total;
 };
 
+static void _recount_total(struct hash_table* ht)
+{
+    int new_total = 0;
+    for (int i = 0; i < ht->size; ++i) {
+        for (struct node* cur = ht->array[i]; cur; cur = cur->next)
+            ++new_total;
+    }
+    ht->total = new_total;
+}
 
 int hash_function1(struct hash_table* hash_table, char* key) {
   return ( (int) key[0] ) % hash_table->size;
@@ -87,8 +96,9 @@ void hash_table_add(struct hash_table* ht,
 
     for (int i = 0; i < ht->size; ++i) {
         for (struct node* cur = ht->array[i]; cur; cur = cur->next) {
-            if (strcmp(cur->key, key) == 0) {
-                cur->value = value;
+            if (strcmp(cur->key, key) == 0) {      
+                cur->value = value;                
+                _recount_total(ht);               
                 return;
             }
         }
@@ -106,37 +116,33 @@ void hash_table_add(struct hash_table* ht,
     new_node->next  = ht->array[idx];
     ht->array[idx]  = new_node;
 
-    ht->total++;        
+    _recount_total(ht);                          
 }
 
 
-
-
-int hash_table_remove(struct hash_table* hash_table,
+int hash_table_remove(struct hash_table* ht,
                       int (*hf)(struct hash_table*, char*),
                       char* key)
 {
-    assert(hash_table && hf && key);
+    assert(ht && hf && key);
 
-    int hash_index = (*hf)(hash_table, key);
-    struct node* curr = hash_table->array[hash_index];
+    int idx = hf(ht, key);
+    struct node* cur = ht->array[idx];
     struct node* prev = NULL;
 
-
-    while (curr && strcmp(curr->key, key) != 0) {
-        prev = curr;
-        curr = curr->next;
+    while (cur && strcmp(cur->key, key) != 0) {
+        prev = cur;
+        cur = cur->next;
     }
-    if (!curr) return 0;                    
+    if (!cur) return 0;                            
 
+    if (prev) prev->next = cur->next;
+    else      ht->array[idx] = cur->next;
 
-    if (prev)  prev->next = curr->next;     
-    else       hash_table->array[hash_index] = curr->next; 
+    free(cur->key);
+    free(cur);
 
-    free(curr->key);
-    free(curr);
-
-    hash_table->total--;                    
+    _recount_total(ht);                           
     return 1;
 }
 
