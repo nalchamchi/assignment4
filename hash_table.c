@@ -109,6 +109,7 @@ void hash_table_add(struct hash_table* ht,
     ht->total++;        
 }
 
+
 int hash_table_remove(struct hash_table* ht,
                       int (*hf)(struct hash_table*, char*),
                       char* key)
@@ -116,33 +117,29 @@ int hash_table_remove(struct hash_table* ht,
     assert(ht && hf && key);
 
     for (int i = 0; i < ht->size; ++i) {
-        struct node* cur  = ht->array[i];
         struct node* prev = NULL;
+        struct node* cur  = ht->array[i];
 
-        while (cur && strcmp(cur->key, key) != 0) {
+        while (cur) {
+            if (strcmp(cur->key, key) == 0) {
+
+                if (prev)
+                    prev->next   = cur->next;
+                else
+                    ht->array[i] = cur->next;
+
+                free(cur->key);
+                free(cur);
+
+                --ht->total;
+                return 1;      
+            }
             prev = cur;
             cur  = cur->next;
         }
-
-        if (!cur)                     
-            continue;
-
-        if (prev)
-            prev->next = cur->next;  
-        else
-            ht->array[i] = cur->next; 
-
-
-        free(cur->key);
-        free(cur);
-
-        ht->total--;                  
-        return 1;                     
     }
-
-    return 0;                         
+    return 0;                 
 }
-
 
 
 int hash_table_collisions(struct hash_table* hash_table)
