@@ -87,7 +87,7 @@ void hash_table_reset(struct hash_table* hash_table)
 void hash_table_add(struct hash_table* ht, int (*hf)(struct hash_table*, char*), char* key, int value) {
     assert(ht && hf && key);
 
-    int idx = hf(ht, key);  
+    int idx = hf(ht, key);
 
     struct node* cur = ht->array[idx];
     while (cur != NULL) {
@@ -109,26 +109,24 @@ void hash_table_add(struct hash_table* ht, int (*hf)(struct hash_table*, char*),
     new_node->next = ht->array[idx];
     ht->array[idx] = new_node;
 
-    ht->total++;  
+    ht->total++;
+
+    // 🔥 여기 추가: 디버그 print
+    printf("[DEBUG] Added key='%s', index=%d, total=%d\n", key, idx, ht->total);
 }
 
 
 
-
-
-int hash_table_remove(struct hash_table* ht,
-                      int (*hf)(struct hash_table*, char*),
-                      char* key)
-{
+int hash_table_remove(struct hash_table* ht, int (*hf)(struct hash_table*, char*), char* key) {
     assert(ht && hf && key);
 
-    int idx = hf(ht, key);  
+    int idx = hf(ht, key);
     struct node* prev = NULL;
     struct node* cur  = ht->array[idx];
 
-    while (cur != NULL) {
+    while (cur) {
         if (strcmp(cur->key, key) == 0) {
-            if (prev != NULL) {
+            if (prev) {
                 prev->next = cur->next;
             } else {
                 ht->array[idx] = cur->next;
@@ -137,17 +135,22 @@ int hash_table_remove(struct hash_table* ht,
             free(cur->key);
             free(cur);
 
-            ht->total--;  
+            ht->total--;
 
-            return 1;  
+            // 🔥 여기 추가: 디버그 print
+            printf("[DEBUG] Removed key='%s', index=%d, total=%d\n", key, idx, ht->total);
+
+            return 1;
         }
 
         prev = cur;
         cur = cur->next;
     }
 
-    return 0;  
+    return 0;
 }
+
+
 
 
 
