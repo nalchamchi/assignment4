@@ -18,17 +18,22 @@ int hash_function1(struct hash_table* hash_table, char* key) {
   return ( (int) key[0] ) % hash_table->size;
 }
 
-
 int hash_function2(struct hash_table* hash_table, char* key)
 {
-    assert(hash_table && key && key[0]);
+    assert(hash_table && key);
 
-    unsigned int len   = (unsigned)strlen(key);
+    unsigned int len = (unsigned)strlen(key);
+    if (len == 0) {
+        return 0;
+    }
+
     unsigned int first = (unsigned char)key[0];
     unsigned int last  = (unsigned char)key[len - 1];
 
     return (len + first + last) % hash_table->size;
 }
+
+
 
 
 
