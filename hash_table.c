@@ -140,21 +140,30 @@ int hash_table_remove(struct hash_table* hash_table,
     return 1;
 }
 
-
 int hash_table_collisions(struct hash_table* hash_table)
 {
     assert(hash_table);
-    int num_col = 0;
+
+    int num_col     = 0;
+    int total_count = 0;            
 
     for (int i = 0; i < hash_table->size; ++i) {
         int bucket_cnt = 0;
-        for (struct node* cur = hash_table->array[i]; cur; cur = cur->next)
+        for (struct node* cur = hash_table->array[i]; cur; cur = cur->next) {
             ++bucket_cnt;
+        }
+
         if (bucket_cnt > 1)
             num_col += bucket_cnt - 1;
+
+        total_count += bucket_cnt;   
     }
+
+    hash_table->total = total_count;
+
     return num_col;
 }
+
 
 
 void display(struct hash_table* hash_table) {
