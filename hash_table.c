@@ -120,31 +120,37 @@ void hash_table_add(struct hash_table* ht,
 }
 
 
+static void _recount_total(struct hash_table* ht);  
+
 int hash_table_remove(struct hash_table* ht,
                       int (*hf)(struct hash_table*, char*),
                       char* key)
 {
     assert(ht && hf && key);
 
-    int idx = hf(ht, key);
-    struct node* cur = ht->array[idx];
-    struct node* prev = NULL;
+    for (int i = 0; i < ht->size; ++i) {
+        struct node* cur  = ht->array[i];
+        struct node* prev = NULL;
 
-    while (cur && strcmp(cur->key, key) != 0) {
-        prev = cur;
-        cur = cur->next;
+        while (cur && strcmp(cur->key, key) != 0) {
+            prev = cur;
+            cur  = cur->next;
+        }
+        if (!cur) continue;             
+
+        if (prev) prev->next = cur->next;
+        else      ht->array[i] = cur->next;
+
+        free(cur->key);
+        free(cur);
+
+        _recount_total(ht);              
+        return 1;                        
     }
-    if (!cur) return 0;                            
 
-    if (prev) prev->next = cur->next;
-    else      ht->array[idx] = cur->next;
-
-    free(cur->key);
-    free(cur);
-
-    _recount_total(ht);                           
-    return 1;
+    return 0;                            
 }
+
 
 int hash_table_collisions(struct hash_table* hash_table)
 {
