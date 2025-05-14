@@ -118,30 +118,38 @@ int hash_table_remove(struct hash_table* ht,
 
     for (int i = 0; i < ht->size; ++i) {
         struct node* prev = NULL;
-        struct node* curr = ht->array[i];
+        struct node* cur  = ht->array[i];
 
-        while (curr && strcmp(curr->key, key) != 0) {
-            prev = curr;
-            curr = curr->next;
+        while (cur && strcmp(cur->key, key) != 0) {
+            prev = cur;
+            cur  = cur->next;
         }
-
-        if (!curr) 
-            continue;
+        if (!cur) 
+            continue;  
 
         if (prev) 
-            prev->next = curr->next;
-        else      
-            ht->array[i] = curr->next;
+            prev->next    = cur->next;
+        else          
+            ht->array[i]  = cur->next;
 
-        free(curr->key);
-        free(curr);
+        free(cur->key);
+        free(cur);
 
-        ht->total--;
-        return 1;   
+        {
+            int new_total = 0;
+            for (int j = 0; j < ht->size; ++j) {
+                for (struct node* c = ht->array[j]; c; c = c->next) 
+                    ++new_total;
+            }
+            ht->total = new_total;
+        }
+
+        return 1;    
     }
 
-    return 0;
+    return 0;        
 }
+
 
 
 int hash_table_collisions(struct hash_table* ht)
