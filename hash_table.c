@@ -120,26 +120,26 @@ int hash_table_remove(struct hash_table* ht,
         struct node* prev = NULL;
         struct node* cur  = ht->array[i];
 
-        while (cur) {
+ while (cur) {
             if (strcmp(cur->key, key) == 0) {
 
-                if (prev)
-                    prev->next   = cur->next;
-                else
-                    ht->array[i] = cur->next;
+                if (prev) prev->next = cur->next;
+                else      ht->array[i] = cur->next;
 
                 free(cur->key);
                 free(cur);
 
-                --ht->total;
-                return 1;      
+                ht->total--;
+                return 1;
             }
             prev = cur;
             cur  = cur->next;
         }
     }
-    return 0;                 
+    return 0;
 }
+
+
 
 
 int hash_table_collisions(struct hash_table* hash_table)
@@ -156,7 +156,6 @@ int hash_table_collisions(struct hash_table* hash_table)
     }
     return num_col;
 }
-
 
 void display(struct hash_table* hash_table) {
   printf("Hash table, size=%d, total=%d\n", hash_table->size, hash_table->total);
