@@ -31,6 +31,7 @@ int hash_function2(struct hash_table* hash_table, char* key)
 }
 
 
+
 struct hash_table* hash_table_create(int array_size) {
   struct hash_table* hash_table = malloc(sizeof(struct hash_table));
   assert(hash_table);
@@ -72,9 +73,9 @@ void hash_table_reset(struct hash_table* hash_table)
             free(cur);
             cur = next;
         }
-        hash_table->array[i] = NULL;   
+        hash_table->array[i] = NULL;
     }
-    hash_table->total = 0;             
+    hash_table->total = 0;                  
 }
 
 void hash_table_add(struct hash_table* hash_table,
@@ -85,28 +86,30 @@ void hash_table_add(struct hash_table* hash_table,
     assert(hash_table && hf && key);
 
     int hash_index = (*hf)(hash_table, key);
-    struct node* curr = hash_table->array[hash_index];
 
-    while (curr) {
-        if (strcmp(curr->key, key) == 0) {
-            curr->value = value;
-            return;
+    for (struct node* cur = hash_table->array[hash_index]; cur; cur = cur->next) {
+        if (strcmp(cur->key, key) == 0) {   
+            cur->value = value;
+            return;                        
         }
-        curr = curr->next;
     }
-struct node* new_node = malloc(sizeof(struct node));
+
+    struct node* new_node = malloc(sizeof(struct node));
     assert(new_node);
 
     new_node->key = malloc(strlen(key) + 1);
     assert(new_node->key);
-    strcpy(new_node->key, key);         
-    new_node->value = value;
+    strcpy(new_node->key, key);
 
-    new_node->next = hash_table->array[hash_index];
+    new_node->value = value;
+    new_node->next  = hash_table->array[hash_index];
     hash_table->array[hash_index] = new_node;
 
-    hash_table->total++;                  
+    hash_table->total++;                    
 }
+
+
+
 int hash_table_remove(struct hash_table* hash_table,
                       int (*hf)(struct hash_table*, char*),
                       char* key)
@@ -117,21 +120,24 @@ int hash_table_remove(struct hash_table* hash_table,
     struct node* curr = hash_table->array[hash_index];
     struct node* prev = NULL;
 
+
     while (curr && strcmp(curr->key, key) != 0) {
         prev = curr;
         curr = curr->next;
     }
+    if (!curr) return 0;                    
 
-    if (!curr) return 0;                  
 
-    if (prev)  prev->next = curr->next;   
+    if (prev)  prev->next = curr->next;     
     else       hash_table->array[hash_index] = curr->next; 
 
     free(curr->key);
     free(curr);
-    hash_table->total--;                 
+
+    hash_table->total--;                    
     return 1;
 }
+
 
 int hash_table_collisions(struct hash_table* hash_table)
 {
@@ -142,12 +148,12 @@ int hash_table_collisions(struct hash_table* hash_table)
         int bucket_cnt = 0;
         for (struct node* cur = hash_table->array[i]; cur; cur = cur->next)
             ++bucket_cnt;
-
-        if (bucket_cnt > 1)               
+        if (bucket_cnt > 1)
             num_col += bucket_cnt - 1;
     }
     return num_col;
 }
+
 
 void display(struct hash_table* hash_table) {
   printf("Hash table, size=%d, total=%d\n", hash_table->size, hash_table->total);
