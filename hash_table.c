@@ -21,10 +21,9 @@ int hash_function1(struct hash_table* hash_table, char* key) {
 
 int hash_function2(struct hash_table* hash_table, char* key)
 {
-    assert(hash_table);
-    assert(key && key[0]);
+    assert(hash_table && key && key[0]);
 
-    unsigned int len   = (unsigned int)strlen(key);
+    unsigned int len   = (unsigned)strlen(key);
     unsigned int first = (unsigned char)key[0];
     unsigned int last  = (unsigned char)key[len - 1];
 
@@ -61,19 +60,21 @@ void hash_table_free(struct hash_table* hash_table) {
   free(hash_table);
 }
 
-void hash_table_reset(struct hash_table* hash_table) {
-  assert(hash_table);
-  for(int i = 0; i < hash_table->size; i++) {
-    struct node* current = hash_table->array[i];
+void hash_table_reset(struct hash_table* hash_table)
+{
+    assert(hash_table);
 
-    while (current != NULL) {
-      hash_table->array[i] = current->next;
-      free(current->key);
-      free(current);
-      current = hash_table->array[i];
-      hash_table->total--;
+    for (int i = 0; i < hash_table->size; ++i) {
+        struct node* cur = hash_table->array[i];
+        while (cur) {
+            struct node* next = cur->next;
+            free(cur->key);
+            free(cur);
+            cur = next;
+        }
+        hash_table->array[i] = NULL;   
     }
-  }
+    hash_table->total = 0;             
 }
 
 void hash_table_add(struct hash_table* hash_table,
@@ -100,6 +101,7 @@ struct node* new_node = malloc(sizeof(struct node));
     assert(new_node->key);
     strcpy(new_node->key, key);         
     new_node->value = value;
+
     new_node->next = hash_table->array[hash_index];
     hash_table->array[hash_index] = new_node;
 
