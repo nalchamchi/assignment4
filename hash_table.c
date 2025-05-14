@@ -13,15 +13,6 @@ struct hash_table {
   int total;
 };
 
-static void _recount_total(struct hash_table* ht)
-{
-    int new_total = 0;
-    for (int i = 0; i < ht->size; ++i) {
-        for (struct node* cur = ht->array[i]; cur; cur = cur->next)
-            ++new_total;
-    }
-    ht->total = new_total;
-}
 
 int hash_function1(struct hash_table* hash_table, char* key) {
   return ( (int) key[0] ) % hash_table->size;
@@ -96,9 +87,8 @@ void hash_table_add(struct hash_table* ht,
 
     for (int i = 0; i < ht->size; ++i) {
         for (struct node* cur = ht->array[i]; cur; cur = cur->next) {
-            if (strcmp(cur->key, key) == 0) {      
-                cur->value = value;                
-                _recount_total(ht);               
+            if (strcmp(cur->key, key) == 0) {
+                cur->value = value;
                 return;
             }
         }
@@ -116,11 +106,8 @@ void hash_table_add(struct hash_table* ht,
     new_node->next  = ht->array[idx];
     ht->array[idx]  = new_node;
 
-    _recount_total(ht);                          
+    ht->total++;        
 }
-
-
-static void _recount_total(struct hash_table* ht);  
 
 int hash_table_remove(struct hash_table* ht,
                       int (*hf)(struct hash_table*, char*),
@@ -136,46 +123,42 @@ int hash_table_remove(struct hash_table* ht,
             prev = cur;
             cur  = cur->next;
         }
-        if (!cur) continue;             
 
-        if (prev) prev->next = cur->next;
-        else      ht->array[i] = cur->next;
+        if (!cur)                     
+            continue;
+
+        if (prev)
+            prev->next = cur->next;  
+        else
+            ht->array[i] = cur->next; 
+
 
         free(cur->key);
         free(cur);
 
-        _recount_total(ht);              
-        return 1;                        
+        ht->total--;                  
+        return 1;                     
     }
 
-    return 0;                            
+    return 0;                         
 }
+
 
 
 int hash_table_collisions(struct hash_table* hash_table)
 {
     assert(hash_table);
-
-    int num_col     = 0;
-    int total_count = 0;            
+    int num_col = 0;
 
     for (int i = 0; i < hash_table->size; ++i) {
         int bucket_cnt = 0;
-        for (struct node* cur = hash_table->array[i]; cur; cur = cur->next) {
+        for (struct node* cur = hash_table->array[i]; cur; cur = cur->next)
             ++bucket_cnt;
-        }
-
         if (bucket_cnt > 1)
             num_col += bucket_cnt - 1;
-
-        total_count += bucket_cnt;   
     }
-
-    hash_table->total = total_count;
-
     return num_col;
 }
-
 
 
 void display(struct hash_table* hash_table) {
@@ -195,4 +178,3 @@ void display(struct hash_table* hash_table) {
   }
   printf("\n");
 }
-
