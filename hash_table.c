@@ -18,19 +18,20 @@ int hash_function1(struct hash_table* hash_table, char* key) {
   return ( (int) key[0] ) % hash_table->size;
 }
 
-int hash_function2(struct hash_table* hash_table, char* key) {
+
+int hash_function2(struct hash_table* hash_table, char* key)
+{
     assert(hash_table && key);
 
-    unsigned long hash = 0;
-    unsigned long i = 1;
-
-    while (*key) {
-        hash += (*key) * i;  
-        i++;
-        key++;
+    unsigned int len = (unsigned)strlen(key);
+    if (len == 0) {
+        return 0;
     }
 
-    return (int)(hash % hash_table->size);
+    unsigned int first = (unsigned char)key[0];
+    unsigned int last  = (unsigned char)key[len - 1];
+
+    return (len + first + last) % hash_table->size;
 }
 
 
@@ -86,17 +87,17 @@ void hash_table_reset(struct hash_table* hash_table)
 void hash_table_add(struct hash_table* ht, int (*hf)(struct hash_table*, char*), char* key, int value) {
     assert(ht && hf && key);
 
-    for (int i = 0; i < ht->size; ++i) {
-        for (struct node* cur = ht->array[i]; cur; cur = cur->next) {
-            if (strcmp(cur->key, key) == 0) {
-                cur->value = value;
-                printf("[DEBUG] Key '%s' exists, updating value to %d\n", key, value);
-                return;
-            }
+    int idx = hf(ht, key);
+
+    struct node* cur = ht->array[idx];
+    while (cur) {
+        if (strcmp(cur->key, key) == 0) {
+            cur->value = value;
+            return;
         }
+        cur = cur->next;
     }
 
-    int idx = hf(ht, key);
     struct node* new_node = malloc(sizeof(struct node));
     assert(new_node);
 
@@ -105,12 +106,12 @@ void hash_table_add(struct hash_table* ht, int (*hf)(struct hash_table*, char*),
     strcpy(new_node->key, key);
 
     new_node->value = value;
-    new_node->next  = ht->array[idx];
-    ht->array[idx]  = new_node;
+    new_node->next = ht->array[idx];
+    ht->array[idx] = new_node;
 
     ht->total++;
-    printf("[DEBUG] Added key '%s' at index %d, total now %d\n", key, idx, ht->total);
 }
+
 
 
 
