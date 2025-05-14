@@ -78,21 +78,24 @@ void hash_table_reset(struct hash_table* hash_table)
     hash_table->total = 0;                  
 }
 
-void hash_table_add(struct hash_table* hash_table,
+void hash_table_add(struct hash_table* ht,
                     int (*hf)(struct hash_table*, char*),
                     char* key,
                     int value)
 {
-    assert(hash_table && hf && key);
+    assert(ht && hf && key);
 
-    int hash_index = (*hf)(hash_table, key);
+    for (int i = 0; i < ht->size; ++i) {
+        for (struct node* cur = ht->array[i]; cur; cur = cur->next) {
+            if (strcmp(cur->key, key) == 0) {
 
-    for (struct node* cur = hash_table->array[hash_index]; cur; cur = cur->next) {
-        if (strcmp(cur->key, key) == 0) {   
-            cur->value = value;
-            return;                        
+                cur->value = value;
+                return;
+            }
         }
     }
+
+    int idx = hf(ht, key);
 
     struct node* new_node = malloc(sizeof(struct node));
     assert(new_node);
@@ -102,10 +105,10 @@ void hash_table_add(struct hash_table* hash_table,
     strcpy(new_node->key, key);
 
     new_node->value = value;
-    new_node->next  = hash_table->array[hash_index];
-    hash_table->array[hash_index] = new_node;
+    new_node->next  = ht->array[idx];
+    ht->array[idx]  = new_node;
 
-    hash_table->total++;                    
+    ht->total++;        
 }
 
 
