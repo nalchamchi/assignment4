@@ -8,152 +8,159 @@
 
 
 struct hash_table {
-    struct node** array;
-    int size;
-    int total;
+  struct node** array;
+  int size;
+  int total;
 };
 
 
 int hash_function1(struct hash_table* hash_table, char* key) {
-    return ((int)key[0]) % hash_table->size;
+  return ( (int) key[0] ) % hash_table->size;
 }
 
 
 int hash_function2(struct hash_table* hash_table, char* key) {
-    int len   = (int)strlen(key);
-    int first = (unsigned char)key[0];
-    int last  = (unsigned char)key[len - 1];
+  if (key == NULL || key[0] == '\0') {
+    return 0;                       
+  }
 
+  unsigned int first  = (unsigned int) key[0];
+  unsigned int second = (unsigned int) (key[1] ? key[1] : 0);
+  unsigned int last   = (unsigned int) key[strlen(key) - 1];
 
-    unsigned long h = (unsigned long)first + (unsigned long)last + (unsigned long)len;
-    int idx = (int)(h & (hash_table->size - 1));
-
-    if (idx < 0) idx += hash_table->size;
-    return idx;
+  unsigned int hash = 2 * first + 1 * second + 7 * last;
+  return (int)(hash % hash_table->size);
 }
-
 
 struct hash_table* hash_table_create(int array_size) {
-    struct hash_table* ht = malloc(sizeof(struct hash_table));
-    assert(ht);
-    ht->size  = array_size;
-    ht->total = 0;
-    ht->array = malloc(array_size * sizeof(struct node*));
-    assert(ht->array);
-    for (int i = 0; i < array_size; i++) {
-        ht->array[i] = NULL;
-    }
-    return ht;
-}
+  struct hash_table* hash_table = malloc(sizeof(struct hash_table));
+  assert(hash_table);
+  hash_table->total = 0;
+  hash_table->size = array_size;
 
+  hash_table->array = malloc(array_size * sizeof(struct node*));
+  for(int i = 0; i < hash_table->size; i++) {
+    hash_table->array[i] = NULL;
+  }
+
+  return hash_table;
+}
 
 void hash_table_free(struct hash_table* hash_table) {
-    assert(hash_table);
-    for (int i = 0; i < hash_table->size; i++) {
-        struct node* cur = hash_table->array[i];
-        while (cur) {
-            struct node* tmp = cur;
-            cur = cur->next;
-            free(tmp->key);
-            free(tmp);
-        }
+  assert(hash_table);
+  for(int i = 0; i < hash_table->size; i++) {
+    struct node* current = hash_table->array[i];
+    while (current != NULL) {
+      hash_table->array[i] = current->next;
+      free(current->key);
+      free(current);
+      current = hash_table->array[i];
     }
-    free(hash_table->array);
-    free(hash_table);
+  }
+  free(hash_table->array);
+  free(hash_table);
 }
 
-/*
- * Reset the hash table: remove all nodes but keep the structure intact.
- */
 void hash_table_reset(struct hash_table* hash_table) {
-    assert(hash_table);
-    for (int i = 0; i < hash_table->size; i++) {
-        struct node* cur = hash_table->array[i];
-        while (cur) {
-            struct node* tmp = cur;
-            cur = cur->next;
-            free(tmp->key);
-            free(tmp);
-            hash_table->total--;
-        }
-        hash_table->array[i] = NULL;
+  assert(hash_table);
+  for(int i = 0; i < hash_table->size; i++) {
+    struct node* current = hash_table->array[i];
+    while (current != NULL) {
+      hash_table->array[i] = current->next;
+      free(current->key);
+      free(current);
+      current = hash_table->array[i];
+      hash_table->total--;
     }
+  }
 }
-
 
 void hash_table_add(struct hash_table* hash_table,
                     int (*hf)(struct hash_table*, char*),
-                    char* key, int value) {
-    assert(hash_table);
-    struct node* new_node = malloc(sizeof(struct node));
-    assert(new_node);
-    new_node->key   = malloc(strlen(key) + 1);
-    assert(new_node->key);
-    strcpy(new_node->key, key);
-    new_node->value = value;
-    new_node->next  = NULL;
+                    char* key,
+                    int value) {
+  assert(hash_table);
 
-    int idx = hf(hash_table, key);
-    new_node->next = hash_table->array[idx];
-    hash_table->array[idx] = new_node;
-    hash_table->total++;
+  struct node* new_node = malloc(sizeof(struct node));
+  assert(new_node);
+
+  new_node->key = malloc(strlen(key) + 1);
+  strcpy(new_node->key, key);
+  new_node->value = value;
+
+  int hash_index = (*hf)(hash_table, key);
+
+  new_node->next = hash_table->array[hash_index];
+  hash_table->array[hash_index] = new_node;
+  hash_table->total++;
 }
-
 
 int hash_table_remove(struct hash_table* hash_table,
                       int (*hf)(struct hash_table*, char*),
                       char* key) {
-    assert(hash_table);
-    int idx = hf(hash_table, key);
-    struct node* cur = hash_table->array[idx];
-    struct node* prev = NULL;
-    while (cur) {
-        if (strcmp(cur->key, key) == 0) {
-            if (prev)
-                prev->next = cur->next;
-            else
-                hash_table->array[idx] = cur->next;
-            free(cur->key);
-            free(cur);
-            hash_table->total--;
-            return 1;
-        }
-        prev = cur;
-        cur  = cur->next;
-    }
-    return 0;
-}
+  assert(hash_table && hash_table->array);
 
+  int hash_index = (*hf)(hash_table, key);
+  struct node* current = hash_table->array[hash_index];
+  struct node* prev = NULL;
+
+  while (current != NULL && strcmp(current->key, key) != 0) {
+    prev = current;
+    current = current->next;
+  }
+
+  if (current == NULL) {
+    return 0;               
+  }
+
+  if (prev == NULL) {       
+    hash_table->array[hash_index] = current->next;
+  } else {
+    prev->next = current->next;
+  }
+
+  free(current->key);
+  free(current);
+  hash_table->total--;
+  return 1;
+}
 
 int hash_table_collisions(struct hash_table* hash_table) {
-    int num_col = 0;
-    for (int i = 0; i < hash_table->size; i++) {
-        int count = 0;
-        struct node* cur = hash_table->array[i];
-        while (cur) {
-            count++;
-            cur = cur->next;
-        }
-        if (count > 1) {
-            num_col += (count - 1);
-        }
+  assert(hash_table);
+  int num_col = 0;
+
+  for (int i = 0; i < hash_table->size; i++) {
+    int bucket_count = 0;
+    struct node* current = hash_table->array[i];
+
+    while (current != NULL) {
+      bucket_count++;
+      current = current->next;
     }
-    return num_col;
+
+    if (bucket_count > 1) {
+      num_col += bucket_count - 1;  
+    }
+  }
+
+  return num_col;
 }
 
-
 void display(struct hash_table* hash_table) {
-    printf("Hash table, size=%d, total=%d\n",
-           hash_table->size, hash_table->total);
-    for (int i = 0; i < hash_table->size; i++) {
-        struct node* cur = hash_table->array[i];
-        printf("array[%d]", i);
-        while (cur) {
-            printf("->(key=%s,value=%d)", cur->key, cur->value);
-            cur = cur->next;
-        }
-        printf("-|\n");
+  printf("Hash table, size=%d, total=%d\n", hash_table->size, hash_table->total);
+  for (int i = 0; i < hash_table->size; i++) {
+    struct node *temp = hash_table->array[i];
+    if (temp == NULL) {
+      printf("array[%d]-|\n", i);
+    } else {
+      printf("array[%d]", i);
+      while (temp != NULL) {
+        printf("->(key=%s,value=%d)", temp->key, temp->value);
+        temp = temp->next;
+      }
+      printf("-|\n");
     }
-    printf("\n");
+  }
+  printf("\n");
 }
 
