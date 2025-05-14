@@ -36,21 +36,24 @@ int hash_function2(struct hash_table* hash_table, char* key)
 
 
 
-
-
 struct hash_table* hash_table_create(int array_size) {
-  struct hash_table* hash_table = malloc(sizeof(struct hash_table));
-  assert(hash_table);
-  hash_table->total = 0;
-  hash_table->size = array_size;
+    struct hash_table* hash_table = malloc(sizeof(struct hash_table));
+    assert(hash_table);
+    hash_table->total = 0;
+    hash_table->size = array_size;
 
-  hash_table->array = malloc(array_size * sizeof(struct node*));
-  for(int i = 0; i < hash_table->size; i++) {
-    hash_table->array[i] = NULL;
-  }
+    hash_table->array = malloc(array_size * sizeof(struct node*));
+    for (int i = 0; i < hash_table->size; i++) {
+        hash_table->array[i] = NULL;
+    }
 
-  return hash_table;
+    printf("[DEBUG] Created new hash_table, size=%d, total=%d\n", hash_table->size, hash_table->total);
+
+    return hash_table;
 }
+
+
+
 
 void hash_table_free(struct hash_table* hash_table) {
   assert(hash_table);
@@ -117,56 +120,65 @@ void hash_table_add(struct hash_table* ht, int (*hf)(struct hash_table*, char*),
 
 
 
-int hash_table_remove(struct hash_table* ht, int (*hf)(struct hash_table*, char*), char* key) {
-    assert(ht && hf && key);
+int hash_table_remove(struct hash_table* hash_table, int (*hf)(struct hash_table*, char*), char* key) {
+    assert(hash_table);
+    assert(hash_table->array);
 
-    int idx = hf(ht, key);
-    struct node* prev = NULL;
-    struct node* cur  = ht->array[idx];
+    int hash_index = (*hf)(hash_table, key);
 
-    while (cur) {
-        if (strcmp(cur->key, key) == 0) {
-            if (prev) {
-                prev->next = cur->next;
-            } else {
-                ht->array[idx] = cur->next;
-            }
-
-            free(cur->key);
-            free(cur);
-
-            ht->total--;
-
-            // 🔥 여기 추가: 디버그 print
-            printf("[DEBUG] Removed key='%s', index=%d, total=%d\n", key, idx, ht->total);
-
+    struct node* temp = hash_table->array[hash_index];
+    if (temp != NULL) {
+        if (strcmp(temp->key, key) == 0) {
+            printf("removing %s from hash table, should match %s\n", temp->key, key);
+            hash_table->array[hash_index] = temp->next;
+            assert(temp->key);
+            free(temp->key);
+            assert(temp);
+            free(temp);
+            hash_table->total--;  
             return 1;
         }
-
-        prev = cur;
-        cur = cur->next;
     }
 
-    return 0;
+    struct node* prev = NULL;
+
+    while (temp != NULL && strcmp(temp->key, key) != 0) {
+        prev = temp;
+        temp = temp->next;
+    }
+
+    if (temp == NULL) {
+        printf("The key %s not found in hash table.\n", key);
+        return 0;
+    }
+
+    prev->next = temp->next;
+    printf("trying to free: %s\n", temp->key);
+    assert(temp->key);
+    free(temp->key);
+    assert(temp);
+    free(temp);
+
+    hash_table->total--;  
+    return 1;
 }
 
 
-
-
-
-int hash_table_collisions(struct hash_table* ht)
-{
-    assert(ht);
-
+int hash_table_collisions(struct hash_table* hash_table) {
     int num_col = 0;
 
-    for (int i = 0; i < ht->size; ++i) {
+    for (int i = 0; i < hash_table->size; ++i) {
         int bucket_cnt = 0;
-        for (struct node* cur = ht->array[i]; cur; cur = cur->next) {
-            ++bucket_cnt;
+        struct node* cur = hash_table->array[i];
+
+        while (cur != NULL) {
+            bucket_cnt++;
+            cur = cur->next;
         }
-        if (bucket_cnt > 1)
+
+        if (bucket_cnt > 1) {
             num_col += bucket_cnt - 1;
+        }
     }
 
     return num_col;
