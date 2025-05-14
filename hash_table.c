@@ -19,18 +19,19 @@ int hash_function1(struct hash_table* hash_table, char* key) {
 }
 
 
-int hash_function2(struct hash_table* hash_table, char* key) {
-  if (key == NULL || key[0] == '\0') {
-    return 0;                       
-  }
+int hash_function2(struct hash_table* hash_table, char* key)
+{
+    assert(hash_table);
+    assert(key && key[0]);                
 
-  unsigned int first  = (unsigned int) key[0];
-  unsigned int second = (unsigned int) (key[1] ? key[1] : 0);
-  unsigned int last   = (unsigned int) key[strlen(key) - 1];
+    unsigned int len   = (unsigned int)strlen(key);
+    unsigned int first = (unsigned char)key[0];
+    unsigned int last  = (unsigned char)key[len - 1];
 
-  unsigned int hash = 2 * first + 1 * second + 7 * last;
-  return (int)(hash % hash_table->size);
+    unsigned int hash  = len + first + last;
+    return hash % hash_table->size;
 }
+
 
 struct hash_table* hash_table_create(int array_size) {
   struct hash_table* hash_table = malloc(sizeof(struct hash_table));
@@ -125,25 +126,25 @@ int hash_table_remove(struct hash_table* hash_table,
   return 1;
 }
 
-int hash_table_collisions(struct hash_table* hash_table) {
-  assert(hash_table);
-  int num_col = 0;
+int hash_table_collisions(struct hash_table* hash_table)
+{
+    assert(hash_table);
 
-  for (int i = 0; i < hash_table->size; i++) {
-    int bucket_count = 0;
-    struct node* current = hash_table->array[i];
+    int num_col = 0;
 
-    while (current != NULL) {
-      bucket_count++;
-      current = current->next;
+    for (int i = 0; i < hash_table->size; ++i) {
+        int bucket_count = 0;
+        struct node* cur = hash_table->array[i];
+
+        while (cur) {                
+            ++bucket_count;
+            cur = cur->next;
+        }
+
+        if (bucket_count > 1)
+            num_col += bucket_count - 1;
     }
-
-    if (bucket_count > 1) {
-      num_col += bucket_count - 1;  
-    }
-  }
-
-  return num_col;
+    return num_col;
 }
 
 void display(struct hash_table* hash_table) {
