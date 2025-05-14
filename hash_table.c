@@ -88,7 +88,6 @@ void hash_table_add(struct hash_table* ht,
     for (int i = 0; i < ht->size; ++i) {
         for (struct node* cur = ht->array[i]; cur; cur = cur->next) {
             if (strcmp(cur->key, key) == 0) {
-
                 cur->value = value;
                 return;
             }
@@ -96,7 +95,6 @@ void hash_table_add(struct hash_table* ht,
     }
 
     int idx = hf(ht, key);
-
     struct node* new_node = malloc(sizeof(struct node));
     assert(new_node);
 
@@ -110,6 +108,7 @@ void hash_table_add(struct hash_table* ht,
 
     ht->total++;        
 }
+
 
 
 
