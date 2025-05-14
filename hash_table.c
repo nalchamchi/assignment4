@@ -78,17 +78,14 @@ void hash_table_reset(struct hash_table* hash_table)
     hash_table->total = 0;                  
 }
 
-void hash_table_add(struct hash_table* ht,
-                    int (*hf)(struct hash_table*, char*),
-                    char* key,
-                    int value)
-{
+void hash_table_add(struct hash_table* ht, int (*hf)(struct hash_table*, char*), char* key, int value) {
     assert(ht && hf && key);
 
     for (int i = 0; i < ht->size; ++i) {
         for (struct node* cur = ht->array[i]; cur; cur = cur->next) {
             if (strcmp(cur->key, key) == 0) {
                 cur->value = value;
+                printf("[DEBUG] Key '%s' exists, updating value to %d\n", key, value);
                 return;
             }
         }
@@ -106,8 +103,10 @@ void hash_table_add(struct hash_table* ht,
     new_node->next  = ht->array[idx];
     ht->array[idx]  = new_node;
 
-    ht->total++;        
+    ht->total++;
+    printf("[DEBUG] Added key '%s' at index %d, total now %d\n", key, idx, ht->total);
 }
+
 
 
 int hash_table_remove(struct hash_table* ht,
