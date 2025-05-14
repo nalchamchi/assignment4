@@ -87,10 +87,10 @@ void hash_table_reset(struct hash_table* hash_table)
 void hash_table_add(struct hash_table* ht, int (*hf)(struct hash_table*, char*), char* key, int value) {
     assert(ht && hf && key);
 
-    int idx = hf(ht, key);
+    int idx = hf(ht, key);  
 
     struct node* cur = ht->array[idx];
-    while (cur) {
+    while (cur != NULL) {
         if (strcmp(cur->key, key) == 0) {
             cur->value = value;
             return;
@@ -109,8 +109,9 @@ void hash_table_add(struct hash_table* ht, int (*hf)(struct hash_table*, char*),
     new_node->next = ht->array[idx];
     ht->array[idx] = new_node;
 
-    ht->total++;
+    ht->total++;  
 }
+
 
 
 
@@ -121,13 +122,13 @@ int hash_table_remove(struct hash_table* ht,
 {
     assert(ht && hf && key);
 
-    int idx = hf(ht, key);
+    int idx = hf(ht, key);  
     struct node* prev = NULL;
     struct node* cur  = ht->array[idx];
 
-    while (cur) {
+    while (cur != NULL) {
         if (strcmp(cur->key, key) == 0) {
-            if (prev) {
+            if (prev != NULL) {
                 prev->next = cur->next;
             } else {
                 ht->array[idx] = cur->next;
@@ -137,14 +138,15 @@ int hash_table_remove(struct hash_table* ht,
             free(cur);
 
             ht->total--;  
-            return 1;
+
+            return 1;  
         }
 
         prev = cur;
         cur = cur->next;
     }
 
-    return 0; 
+    return 0;  
 }
 
 
