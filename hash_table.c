@@ -125,9 +125,9 @@ int hash_table_remove(struct hash_table* ht,
     struct node* prev = NULL;
     struct node* cur  = ht->array[idx];
 
-    while (cur != NULL) {
+    while (cur) {
         if (strcmp(cur->key, key) == 0) {
-            if (prev != NULL) {
+            if (prev) {
                 prev->next = cur->next;
             } else {
                 ht->array[idx] = cur->next;
@@ -136,7 +136,7 @@ int hash_table_remove(struct hash_table* ht,
             free(cur->key);
             free(cur);
 
-            ht->total--; 
+            ht->total--;  
             return 1;
         }
 
